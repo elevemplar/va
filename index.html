@@ -23,7 +23,7 @@
   </div>
 
   <script>
-    // ✅ FIXED: Correct Firebase config object (with commas)
+    // ✅ Clean, working config
     const firebaseConfig = {
       apiKey: "AIzaSyCljsn7eAJYe8BEHQbF8cXLRxVkqypmxPU",
       authDomain: "stratusjet-a90ce.firebaseapp.com",
@@ -34,23 +34,24 @@
       measurementId: "G-6WTJKQ4NLX"
     };
 
-    // ✅ Initialize Firebase
+    // ✅ Initialize Firebase (compat style)
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
 
-    const emailInput = document.getElementById('email');
-    const passwordInput = document.getElementById('password');
-    const signedOutDiv = document.getElementById('user-signed-out');
-    const signedInDiv = document.getElementById('user-signed-in');
-    const userEmailSpan = document.getElementById('user-email');
-
+    // ✅ Define functions in global scope so buttons can call them
     function signUp() {
-      auth.createUserWithEmailAndPassword(emailInput.value, passwordInput.value)
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      auth.createUserWithEmailAndPassword(email, password)
         .catch(e => alert(e.message));
     }
 
     function signIn() {
-      auth.signInWithEmailAndPassword(emailInput.value, passwordInput.value)
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      auth.signInWithEmailAndPassword(email, password)
         .catch(e => alert(e.message));
     }
 
@@ -59,17 +60,10 @@
     }
 
     auth.onAuthStateChanged(user => {
-      if (user) {
-        signedOutDiv.style.display = 'none';
-        signedInDiv.style.display = 'block';
-        userEmailSpan.textContent = user.email;
-      } else {
-        signedOutDiv.style.display = 'block';
-        signedInDiv.style.display = 'none';
-        userEmailSpan.textContent = '';
-      }
+      document.getElementById('user-signed-out').style.display = user ? 'none' : 'block';
+      document.getElementById('user-signed-in').style.display = user ? 'block' : 'none';
+      document.getElementById('user-email').textContent = user ? user.email : '';
     });
   </script>
 </body>
 </html>
-
