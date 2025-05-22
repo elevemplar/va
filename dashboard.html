@@ -25,7 +25,8 @@
 
     .left-header {
       font-size: 1.2rem;
-      font-weight: 600;
+      font-family: Georgia, serif;
+      font-weight: normal;
     }
 
     .right-header {
@@ -34,9 +35,17 @@
       gap: 0.75rem;
     }
 
+    .logo-container {
+      background: white;
+      padding: 4px 8px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
     .logo {
       height: 40px;
-      margin-left: 1rem;
     }
 
     .button {
@@ -101,7 +110,9 @@
     <div class="right-header">
       <button class="button">Account</button>
       <button class="button" onclick="logout()">Log Out</button>
-      <img src="stratusjet.png" alt="StratusJet Logo" class="logo" />
+      <div class="logo-container">
+        <img src="stratusjet.png" alt="StratusJet Logo" class="logo" />
+      </div>
     </div>
   </header>
 
