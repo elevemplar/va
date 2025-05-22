@@ -4,14 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>StratusJet</title>
-
-  <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-
   <style>
     body {
       margin: 0;
@@ -41,19 +34,10 @@
       display: block;
     }
 
-    input {
+    .button {
       width: 100%;
       padding: 0.75rem;
-      margin: 0.5rem 0;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 1rem;
-    }
-
-    button {
-      width: 100%;
-      padding: 0.75rem;
-      margin-top: 0.5rem;
+      margin-top: 0.75rem;
       border: none;
       background: #00a8f3;
       color: white;
@@ -61,9 +45,10 @@
       border-radius: 8px;
       cursor: pointer;
       transition: background 0.3s;
+      font-size: 1rem;
     }
 
-    button:hover {
+    .button:hover {
       background: #0095da;
     }
   </style>
@@ -71,59 +56,8 @@
 <body>
   <div class="card">
     <img src="stratusjet.png" alt="StratusJet Logo" class="logo" />
-    <input type="text" id="username" placeholder="Callsign or Username" />
-    <input type="email" id="email" placeholder="Email" />
-    <input type="password" id="password" placeholder="Password" />
-    <button onclick="signUp()">Sign Up</button>
-    <button onclick="signIn()">Sign In</button>
+    <button class="button" onclick="window.location.href='login.html'">Log In</button>
+    <button class="button" onclick="window.location.href='signup.html'">Sign Up</button>
   </div>
-
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyCljsn7eAJYe8BEHQbF8cXLRxVkqypmxPU",
-      authDomain: "stratusjet-a90ce.firebaseapp.com",
-      projectId: "stratusjet-a90ce",
-      storageBucket: "stratusjet-a90ce.appspot.com",
-      messagingSenderId: "912085812191",
-      appId: "1:912085812191:web:ac86feb9d6dd941fad3a6a",
-      measurementId: "G-6WTJKQ4NLX"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-
-    function signUp() {
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-      const username = document.getElementById("username").value;
-
-      if (!username) {
-        alert("Please enter a callsign or username.");
-        return;
-      }
-
-      auth.createUserWithEmailAndPassword(email, password)
-        .then((userCredential) => {
-          return userCredential.user.updateProfile({
-            displayName: username
-          });
-        })
-        .then(() => {
-          window.location.href = "dashboard.html";
-        })
-        .catch((e) => alert(e.message));
-    }
-
-    function signIn() {
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-
-      auth.signInWithEmailAndPassword(email, password)
-        .then(() => {
-          window.location.href = "dashboard.html";
-        })
-        .catch((e) => alert(e.message));
-    }
-  </script>
 </body>
 </html>
