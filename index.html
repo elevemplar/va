@@ -10,20 +10,14 @@
 <body>
   <h1>Virtual Airline Login</h1>
 
-  <div id="user-signed-out">
+  <div id="login-form">
     <input type="email" id="email" placeholder="Email" />
     <input type="password" id="password" placeholder="Password" />
     <button onclick="signUp()">Sign Up</button>
     <button onclick="signIn()">Sign In</button>
   </div>
 
-  <div id="user-signed-in" style="display:none;">
-    <p>Welcome, <span id="user-email"></span></p>
-    <button onclick="signOut()">Sign Out</button>
-  </div>
-
   <script>
-    // ✅ Clean, working config
     const firebaseConfig = {
       apiKey: "AIzaSyCljsn7eAJYe8BEHQbF8cXLRxVkqypmxPU",
       authDomain: "stratusjet-a90ce.firebaseapp.com",
@@ -34,11 +28,9 @@
       measurementId: "G-6WTJKQ4NLX"
     };
 
-    // ✅ Initialize Firebase (compat style)
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
 
-    // ✅ Define functions in global scope so buttons can call them
     function signUp() {
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
@@ -55,14 +47,11 @@
         .catch(e => alert(e.message));
     }
 
-    function signOut() {
-      auth.signOut();
-    }
-
+    // Redirect to dashboard if user is logged in
     auth.onAuthStateChanged(user => {
-      document.getElementById('user-signed-out').style.display = user ? 'none' : 'block';
-      document.getElementById('user-signed-in').style.display = user ? 'block' : 'none';
-      document.getElementById('user-email').textContent = user ? user.email : '';
+      if (user) {
+        window.location.href = "dashboard.html";
+      }
     });
   </script>
 </body>
