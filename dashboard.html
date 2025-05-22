@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dashboard</title>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+</head>
+<body>
+  <h1 id="welcome-message">Checking login...</h1>
+  <button onclick="logout()">Log Out</button>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCljsn7eAJYe8BEHQbF8cXLRxVkqypmxPU",
+      authDomain: "stratusjet-a90ce.firebaseapp.com",
+      projectId: "stratusjet-a90ce",
+      storageBucket: "stratusjet-a90ce.appspot.com",
+      messagingSenderId: "912085812191",
+      appId: "1:912085812191:web:ac86feb9d6dd941fad3a6a",
+      measurementId: "G-6WTJKQ4NLX"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    function logout() {
+      auth.signOut().then(() => {
+        window.location.href = "index.html";
+      });
+    }
+
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        document.getElementById("welcome-message").textContent = "Welcome Mr. Pilot";
+      } else {
+        // Not logged in, go back to login
+        window.location.href = "index.html";
+      }
+    });
+  </script>
+</body>
+</html>
