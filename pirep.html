@@ -146,29 +146,33 @@
     const successMsg = document.getElementById("successMsg");
 
     form.addEventListener("submit", async (e) => {
-      e.preventDefault();
+  e.preventDefault();
 
-      const pirep = {
-        flightNumber: form.flightNumber.value.trim(),
-        aircraftType: form.aircraftType.value,
-        departure: form.departure.value.trim().toUpperCase(),
-        arrival: form.arrival.value.trim().toUpperCase(),
-        depDate: form.depDate.value.trim(),
-        arrDate: form.arrDate.value.trim(),
-        depTime: form.depTime.value.trim(),
-        arrTime: form.arrTime.value.trim(),
-        remarks: form.remarks.value.trim(),
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-      };
+  const user = firebase.auth().currentUser;
 
-      try {
-        await db.collection("pireps").add(pirep);
-        successMsg.textContent = "PIREP submitted successfully!";
-        form.reset();
-      } catch (error) {
-        alert("Error submitting PIREP: " + error.message);
-      }
-    });
+  const pirep = {
+    flightNumber: form.flightNumber.value.trim(),
+    aircraftType: form.aircraftType.value,
+    departure: form.departure.value.trim().toUpperCase(),
+    arrival: form.arrival.value.trim().toUpperCase(),
+    depDate: form.depDate.value.trim(),
+    arrDate: form.arrDate.value.trim(),
+    depTime: form.depTime.value.trim(),
+    arrTime: form.arrTime.value.trim(),
+    remarks: form.remarks.value.trim(),
+    pilot: user?.displayName || "Unknown Pilot",  // Add this line
+    approved: false,
+    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+  };
+
+  try {
+    await db.collection("pireps").add(pirep);
+    successMsg.textContent = "PIREP submitted successfully!";
+    form.reset();
+  } catch (error) {
+    alert("Error submitting PIREP: " + error.message);
+  }
+});
   </script>
 </body>
 </html>
