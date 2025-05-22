@@ -203,24 +203,33 @@
     }
 
     const recentFlights = document.getElementById("recentFlights");
+db.collection("pireps")
+  .where("approved", "==", true)
+  .orderBy("timestamp", "desc")
+  .limit(5)
+  .onSnapshot(snapshot => {
+    if (snapshot.empty) {
+      console.warn("No approved PIREPs found.");
+      recentFlights.innerHTML = `<h3>Recent Flights</h3><p>No recent flights.</p>`;
+      return;
+    }
 
-    db.collection("pireps")
-      .where("approved", "==", true)
-      .orderBy("timestamp", "desc")
-      .limit(5)
-      .onSnapshot(snapshot => {
-        const entries = snapshot.docs.map(doc => {
-          const p = doc.data();
-          return `
-            <div class="flight-entry">
-              ✈️ <strong>${p.pilot || 'Pilot'}</strong><br>
-              ${p.departure} → ${p.arrival}<br>
-              ${p.flightNumber}
-            </div>`;
-        }).join('');
+    const entries = snapshot.docs.map(doc => {
+      const p = doc.data();
+      console.log("Approved PIREP:", p); // debug
+      return `
+        <div class="flight-entry">
+          ✈️ <strong>${p.pilot || 'Pilot'}</strong><br>
+          ${p.departure} → ${p.arrival}<br>
+          ${p.flightNumber}
+        </div>`;
+    }).join('');
 
-        recentFlights.innerHTML = `<h3>Recent Flights</h3>${entries || "<p>No recent flights.</p>"}`;
-      });
+    recentFlights.innerHTML = `<h3>Recent Flights</h3>${entries}`;
+  }, (error) => {
+    console.error("Error fetching approved PIREPs:", error);
+    recentFlights.innerHTML = `<h3>Recent Flights</h3><p>Error loading flights.</p>`;
+  });
   </script>
 </body>
 </html>
