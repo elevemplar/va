@@ -6,10 +6,107 @@
   <title>Dashboard</title>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background-color: #f4f6fc;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      background-color: #0052D4;
+      color: white;
+    }
+
+    .left-header {
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+
+    .right-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .logo {
+      height: 40px;
+    }
+
+    .account-button {
+      background: white;
+      color: #0052D4;
+      border: none;
+      padding: 0.5rem 1rem;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .main {
+      display: flex;
+      padding: 2rem;
+      gap: 2rem;
+    }
+
+    .map {
+      flex: 3;
+      background: white;
+      height: 500px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #999;
+      font-size: 1.2rem;
+    }
+
+    .sidebar {
+      flex: 1;
+      background: white;
+      height: 500px;
+      border-radius: 10px;
+      padding: 1rem;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      overflow-y: auto;
+    }
+
+    .sidebar h3 {
+      margin-top: 0;
+      color: #0052D4;
+    }
+
+    .flight-entry {
+      border-bottom: 1px solid #eee;
+      padding: 0.5rem 0;
+      font-size: 0.95rem;
+    }
+  </style>
 </head>
 <body>
-  <h1 id="welcome-message">Checking login...</h1>
-  <button onclick="logout()">Log Out</button>
+  <header>
+    <div class="left-header" id="welcome-text">Welcome, Pilot</div>
+    <div class="right-header">
+      <button class="account-button">Account</button>
+      <img src="stratusjet.png" alt="StratusJet Logo" class="logo" />
+    </div>
+  </header>
+
+  <div class="main">
+    <div class="map">Live Flight Map Coming Soon</div>
+    <div class="sidebar">
+      <h3>Recent Filed Flights</h3>
+      <div class="flight-entry">KJFK → KLAX · N123VA</div>
+      <div class="flight-entry">CYYZ → CYVR · N452SJ</div>
+      <div class="flight-entry">EGLL → LIRF · N678XT</div>
+    </div>
+  </div>
 
   <script>
     const firebaseConfig = {
@@ -25,18 +122,11 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
 
-    function logout() {
-      auth.signOut().then(() => {
-        window.location.href = "index.html";
-      });
-    }
-
     auth.onAuthStateChanged(user => {
-      if (user) {
-        document.getElementById("welcome-message").textContent = "Welcome Mr. Pilot";
-      } else {
-        // Not logged in, go back to login
+      if (!user) {
         window.location.href = "index.html";
+      } else {
+        document.getElementById("welcome-text").textContent = `Welcome, ${user.displayName || 'Pilot'}`;
       }
     });
   </script>
