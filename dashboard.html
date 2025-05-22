@@ -210,6 +210,26 @@
 
     const recentFlights = document.getElementById("recentFlights");
 
+    const parseTime = (t) => {
+      if (!t || typeof t !== "string") return null;
+      t = t.trim();
+
+      // If it's 4 digits like "0430"
+      if (/^\d{4}$/.test(t)) {
+        const h = parseInt(t.slice(0, 2), 10);
+        const m = parseInt(t.slice(2), 10);
+        return h * 60 + m;
+      }
+
+      // If it's HH:MM
+      if (t.includes(":")) {
+        const [h, m] = t.split(":").map(Number);
+        return h * 60 + m;
+      }
+
+      return null;
+    };
+
     db.collection("pireps")
       .where("approved", "==", true)
       .orderBy("timestamp", "desc")
@@ -219,12 +239,6 @@
           recentFlights.innerHTML = `<h3>Recent Flights</h3><p>No recent flights.</p>`;
           return;
         }
-
-        const parseTime = (t) => {
-          if (!t || !t.includes(":")) return null;
-          const [h, m] = t.split(":").map(Number);
-          return h * 60 + m;
-        };
 
         const entries = snapshot.docs.map(doc => {
           const p = doc.data();
