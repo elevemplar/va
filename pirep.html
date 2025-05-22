@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>File a PIREP | StratusJet</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Roboto', sans-serif;
+      background: #f4f6fc;
+      padding: 2rem;
+    }
+
+    .container {
+      max-width: 600px;
+      background: white;
+      margin: auto;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+    }
+
+    h1 {
+      text-align: center;
+      color: #00a8f3;
+      margin-bottom: 1.5rem;
+    }
+
+    label {
+      display: block;
+      margin-top: 1rem;
+      font-weight: 600;
+      color: #333;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 0.6rem;
+      margin-top: 0.3rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+
+    textarea {
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1.5rem;
+      width: 100%;
+      padding: 0.8rem;
+      background: #00a8f3;
+      border: none;
+      color: white;
+      font-size: 1rem;
+      font-weight: bold;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #0095da;
+    }
+
+    .success {
+      color: green;
+      margin-top: 1rem;
+      text-align: center;
+    }
+
+    .back-link {
+      display: block;
+      text-align: center;
+      margin-top: 1.5rem;
+      color: #00a8f3;
+      text-decoration: none;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>File a PIREP</h1>
+    <form id="pirepForm">
+      <label for="flightNumber">Flight Number / Callsign</label>
+      <input type="text" id="flightNumber" required>
+
+      <label for="aircraftType">Aircraft Type</label>
+      <select id="aircraftType" required>
+        <option value="">-- Select Type --</option>
+        <option value="LJ35">Learjet 35A (LJ35)</option>
+        <option value="C25C">Cessna Citation CJ4 (C25C)</option>
+        <option value="C700">Cessna Citation Longitude (C700)</option>
+      </select>
+
+      <label for="departure">Departure (ICAO)</label>
+      <input type="text" id="departure" required>
+
+      <label for="arrival">Arrival (ICAO)</label>
+      <input type="text" id="arrival" required>
+
+      <label for="depDate">Departure Date (MM/DD/YYYY)</label>
+      <input type="text" id="depDate" required>
+
+      <label for="arrDate">Arrival Date (MM/DD/YYYY)</label>
+      <input type="text" id="arrDate" required>
+
+      <label for="depTime">Departure Time (UTC)</label>
+      <input type="text" id="depTime" placeholder="HH:MM" required>
+
+      <label for="arrTime">Arrival Time (UTC)</label>
+      <input type="text" id="arrTime" placeholder="HH:MM" required>
+
+      <label for="remarks">Remarks (Optional)</label>
+      <textarea id="remarks" rows="3"></textarea>
+
+      <button type="submit">Submit PIREP</button>
+      <div class="success" id="successMsg"></div>
+    </form>
+
+    <a href="dashboard.html" class="back-link">← Back to Dashboard</a>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCljsn7eAJYe8BEHQbF8cXLRxVkqypmxPU",
+      authDomain: "stratusjet-a90ce.firebaseapp.com",
+      projectId: "stratusjet-a90ce",
+      storageBucket: "stratusjet-a90ce.appspot.com",
+      messagingSenderId: "912085812191",
+      appId: "1:912085812191:web:ac86feb9d6dd941fad3a6a"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const form = document.getElementById("pirepForm");
+    const successMsg = document.getElementById("successMsg");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const pirep = {
+        flightNumber: form.flightNumber.value.trim(),
+        aircraftType: form.aircraftType.value,
+        departure: form.departure.value.trim().toUpperCase(),
+        arrival: form.arrival.value.trim().toUpperCase(),
+        depDate: form.depDate.value.trim(),
+        arrDate: form.arrDate.value.trim(),
+        depTime: form.depTime.value.trim(),
+        arrTime: form.arrTime.value.trim(),
+        remarks: form.remarks.value.trim(),
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      };
+
+      try {
+        await db.collection("pireps").add(pirep);
+        successMsg.textContent = "PIREP submitted successfully!";
+        form.reset();
+      } catch (error) {
+        alert("Error submitting PIREP: " + error.message);
+      }
+    });
+  </script>
+</body>
+</html>
