@@ -114,6 +114,7 @@
 
         div.innerHTML = `
           <div class="pirep-header">${data.flightNumber} (${data.aircraftType})</div>
+          <div class="pirep-field"><strong>Pilot:</strong> ${data.pilot || 'Unknown'}</div>
           <div class="pirep-field"><strong>Route:</strong> ${data.departure} → ${data.arrival}</div>
           <div class="pirep-field"><strong>Dep:</strong> ${data.depDate} at ${data.depTime} UTC</div>
           <div class="pirep-field"><strong>Arr:</strong> ${data.arrDate} at ${data.arrTime} UTC</div>
