@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin PIREPs | StratusJet</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 2rem;
+      font-family: 'Roboto', sans-serif;
+      background: #f4f6fc;
+    }
+
+    h1 {
+      text-align: center;
+      color: #00a8f3;
+      margin-bottom: 2rem;
+    }
+
+    .pirep-list {
+      max-width: 1000px;
+      margin: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+    }
+
+    .pirep-card {
+      background: white;
+      padding: 1.25rem;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .pirep-header {
+      font-weight: bold;
+      color: #00a8f3;
+      margin-bottom: 0.5rem;
+    }
+
+    .pirep-field {
+      margin: 0.25rem 0;
+      font-size: 0.95rem;
+      color: #333;
+    }
+
+    .pirep-actions {
+      margin-top: 1rem;
+    }
+
+    .btn {
+      padding: 0.5rem 1rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      border: none;
+      margin-right: 0.5rem;
+    }
+
+    .btn-approve {
+      background: #00c853;
+      color: white;
+    }
+
+    .btn-delete {
+      background: #d32f2f;
+      color: white;
+    }
+
+    .status {
+      font-size: 0.9rem;
+      font-weight: bold;
+      color: #0095da;
+    }
+
+    .approved {
+      color: #00c853;
+    }
+  </style>
+</head>
+<body>
+  <h1>PIREP Review Panel</h1>
+  <div class="pirep-list" id="pirepList">Loading PIREPs...</div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCljsn7eAJYe8BEHQbF8cXLRxVkqypmxPU",
+      authDomain: "stratusjet-a90ce.firebaseapp.com",
+      projectId: "stratusjet-a90ce",
+      storageBucket: "stratusjet-a90ce.appspot.com",
+      messagingSenderId: "912085812191",
+      appId: "1:912085812191:web:ac86feb9d6dd941fad3a6a"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const pirepList = document.getElementById('pirepList');
+    pirepList.innerHTML = '';
+
+    db.collection('pireps').orderBy('timestamp', 'desc').onSnapshot(snapshot => {
+      pirepList.innerHTML = '';
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const id = doc.id;
+
+        const div = document.createElement('div');
+        div.className = 'pirep-card';
+
+        div.innerHTML = `
+          <div class="pirep-header">${data.flightNumber} (${data.aircraftType})</div>
+          <div class="pirep-field"><strong>Route:</strong> ${data.departure} → ${data.arrival}</div>
+          <div class="pirep-field"><strong>Dep:</strong> ${data.depDate} at ${data.depTime} UTC</div>
+          <div class="pirep-field"><strong>Arr:</strong> ${data.arrDate} at ${data.arrTime} UTC</div>
+          ${data.remarks ? `<div class="pirep-field"><strong>Remarks:</strong> ${data.remarks}</div>` : ''}
+          <div class="pirep-field status ${data.approved ? 'approved' : ''}">
+            Status: ${data.approved ? '✅ Approved' : '⏳ Pending'}
+          </div>
+          <div class="pirep-actions">
+            ${!data.approved ? `<button class="btn btn-approve" onclick="approvePIREP('${id}')">Approve</button>` : ''}
+            <button class="btn btn-delete" onclick="deletePIREP('${id}')">Delete</button>
+          </div>
+        `;
+
+        pirepList.appendChild(div);
+      });
+
+      if (snapshot.empty) {
+        pirepList.innerHTML = '<p>No PIREPs submitted yet.</p>';
+      }
+    });
+
+    function approvePIREP(id) {
+      db.collection('pireps').doc(id).update({ approved: true });
+    }
+
+    function deletePIREP(id) {
+      if (confirm("Are you sure you want to delete this PIREP?")) {
+        db.collection('pireps').doc(id).delete();
+      }
+    }
+  </script>
+</body>
+</html>
