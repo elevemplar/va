@@ -3,22 +3,90 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Virtual Airline Login</title>
+  <title>StratusJet Login</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(to right, #0052D4, #4364F7, #6FB1FC);
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+    }
+
+    .card {
+      background: white;
+      color: #333;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      width: 100%;
+      max-width: 360px;
+      text-align: center;
+    }
+
+    h1 {
+      margin-bottom: 1.5rem;
+      font-weight: 600;
+      font-size: 1.8rem;
+    }
+
+    input {
+      width: 100%;
+      padding: 0.75rem;
+      margin: 0.5rem 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+
+    button {
+      width: 100%;
+      padding: 0.75rem;
+      margin-top: 0.5rem;
+      border: none;
+      background: #0052D4;
+      color: white;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background: #003ea8;
+    }
+
+    .footer {
+      margin-top: 1rem;
+      font-size: 0.85rem;
+      color: #666;
+    }
+  </style>
 </head>
 <body>
-  <h1>Virtual Airline Login</h1>
+  <div class="card">
+    <h1>StratusJet Login</h1>
 
-  <div id="login-form">
     <input type="email" id="email" placeholder="Email" />
     <input type="password" id="password" placeholder="Password" />
     <button onclick="signUp()">Sign Up</button>
     <button onclick="signIn()">Sign In</button>
+
+    <div class="footer">A Virtual Airline for Flight Sim Enthusiasts</div>
   </div>
 
   <script>
-    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyCljsn7eAJYe8BEHQbF8cXLRxVkqypmxPU",
       authDomain: "stratusjet-a90ce.firebaseapp.com",
@@ -32,20 +100,27 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
 
-    // Sign up function
     function signUp() {
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
 
       auth.createUserWithEmailAndPassword(email, password)
         .then(() => {
-          // Redirect after successful signup
           window.location.href = "dashboard.html";
         })
         .catch((e) => alert(e.message));
     }
 
-    // Sign in function
     function signIn() {
       const email = document.getElementById("email").value;
-      const
+      const password = document.getElementById("password").value;
+
+      auth.signInWithEmailAndPassword(email, password)
+        .then(() => {
+          window.location.href = "dashboard.html";
+        })
+        .catch((e) => alert(e.message));
+    }
+  </script>
+</body>
+</html>
