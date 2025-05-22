@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>StratusJet</title>
 
-  <!-- Google Font -->
+  <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 
   <!-- Firebase SDK -->
@@ -70,8 +70,11 @@
 </head>
 <body>
   <div class="card">
+    <!-- Logo -->
     <img src="stratusjet.png" alt="StratusJet Logo" class="logo" />
 
+    <!-- Sign-up/Login form -->
+    <input type="text" id="username" placeholder="Callsign or Username" />
     <input type="email" id="email" placeholder="Email" />
     <input type="password" id="password" placeholder="Password" />
     <button onclick="signUp()">Sign Up</button>
@@ -95,8 +98,19 @@
     function signUp() {
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
+      const username = document.getElementById("username").value;
+
+      if (!username) {
+        alert("Please enter a callsign or username.");
+        return;
+      }
 
       auth.createUserWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+          return userCredential.user.updateProfile({
+            displayName: username
+          });
+        })
         .then(() => {
           window.location.href = "dashboard.html";
         })
