@@ -6,10 +6,8 @@
   <title>Dashboard</title>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-
-  <!-- Roboto Font -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-
   <style>
     body {
       margin: 0;
@@ -18,7 +16,6 @@
       display: flex;
     }
 
-    /* Sidebar */
     .sidebar-nav {
       width: 220px;
       background: white;
@@ -68,7 +65,6 @@
     .left-header {
       font-size: 1.4rem;
       font-weight: 700;
-      font-family: 'Roboto', sans-serif;
     }
 
     .right-header {
@@ -81,9 +77,6 @@
       background: white;
       padding: 4px 8px;
       border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
     }
 
     .logo {
@@ -98,8 +91,6 @@
       font-weight: 700;
       border-radius: 6px;
       cursor: pointer;
-      transition: background 0.3s;
-      font-family: 'Roboto', sans-serif;
     }
 
     .button:hover {
@@ -146,27 +137,23 @@
 
     .flight-entry {
       border-bottom: 1px solid #eee;
-      padding: 0.5rem 0;
+      padding: 0.75rem 0;
       font-size: 0.95rem;
     }
   </style>
 </head>
 <body>
-  <!-- Sidebar Navigation -->
-<nav class="sidebar-nav">
-  <h2>Flight Operations</h2>
-  <a href="#">Flights</a>
-  <a href="pirep.html">File PIREP</a>
-  <a href="fleet.html">Fleet</a>
-
-  <div style="margin-top: auto; font-size: 0.75rem; color: #bbb; padding-top: 2rem;">
-    <a href="admin-pireps.html" style="color: #ccc; text-decoration: none;">admin</a>
-  </div>
-</nav>
-
+  <nav class="sidebar-nav">
+    <h2>Flight Operations</h2>
+    <a href="#">Flights</a>
+    <a href="pirep.html">File PIREP</a>
+    <a href="fleet.html">Fleet</a>
+    <div style="margin-top: auto; font-size: 0.75rem; color: #bbb; padding-top: 2rem;">
+      <a href="admin-pireps.html" style="color: #ccc; text-decoration: none;">admin</a>
+    </div>
+  </nav>
 
   <div class="page-content">
-    <!-- Header -->
     <header>
       <div class="left-header" id="welcome-text">Welcome, Pilot</div>
       <div class="right-header">
@@ -178,14 +165,11 @@
       </div>
     </header>
 
-    <!-- Main Content -->
     <div class="main">
       <div class="map">Live Flight Map Coming Soon</div>
-      <div class="sidebar">
-        <h3>Recent Filed Flights</h3>
-        <div class="flight-entry">KJFK → KLAX · N123VA</div>
-        <div class="flight-entry">CYYZ → CYVR · N452SJ</div>
-        <div class="flight-entry">EGLL → LIRF · N678XT</div>
+      <div class="sidebar" id="recentFlights">
+        <h3>Recent Flights</h3>
+        <p>Loading...</p>
       </div>
     </div>
   </div>
@@ -202,6 +186,7 @@
 
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
+    const db = firebase.firestore();
 
     auth.onAuthStateChanged(user => {
       if (!user) {
@@ -216,6 +201,26 @@
         window.location.href = "index.html";
       });
     }
+
+    const recentFlights = document.getElementById("recentFlights");
+
+    db.collection("pireps")
+      .where("approved", "==", true)
+      .orderBy("timestamp", "desc")
+      .limit(5)
+      .onSnapshot(snapshot => {
+        const entries = snapshot.docs.map(doc => {
+          const p = doc.data();
+          return `
+            <div class="flight-entry">
+              ✈️ <strong>${p.pilot || 'Pilot'}</strong><br>
+              ${p.departure} → ${p.arrival}<br>
+              ${p.flightNumber}
+            </div>`;
+        }).join('');
+
+        recentFlights.innerHTML = `<h3>Recent Flights</h3>${entries || "<p>No recent flights.</p>"}`;
+      });
   </script>
 </body>
 </html>
