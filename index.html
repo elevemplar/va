@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Virtual Airline Login</title>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+</head>
+<body>
+  <h1>Virtual Airline Login</h1>
+
+  <div id="user-signed-out">
+    <input type="email" id="email" placeholder="Email" />
+    <input type="password" id="password" placeholder="Password" />
+    <button onclick="signUp()">Sign Up</button>
+    <button onclick="signIn()">Sign In</button>
+  </div>
+
+  <div id="user-signed-in" style="display:none;">
+    <p>Welcome, <span id="user-email"></span></p>
+    <button onclick="signOut()">Sign Out</button>
+  </div>
+
+  <script>
+    // TODO: Replace with your Firebase config
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      projectId: "YOUR_PROJECT_ID",
+      // other config as needed
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const signedOutDiv = document.getElementById('user-signed-out');
+    const signedInDiv = document.getElementById('user-signed-in');
+    const userEmailSpan = document.getElementById('user-email');
+
+    function signUp() {
+      auth.createUserWithEmailAndPassword(emailInput.value, passwordInput.value)
+        .catch(e => alert(e.message));
+    }
+
+    function signIn() {
+      auth.signInWithEmailAndPassword(emailInput.value, passwordInput.value)
+        .catch(e => alert(e.message));
+    }
+
+    function signOut() {
+      auth.signOut();
+    }
+
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        signedOutDiv.style.display = 'none';
+        signedInDiv.style.display = 'block';
+        userEmailSpan.textContent = user.email;
+      } else {
+        signedOutDiv.style.display = 'block';
+        signedInDiv.style.display = 'none';
+        userEmailSpan.textContent = '';
+      }
+    });
+  </script>
+</body>
+</html>
