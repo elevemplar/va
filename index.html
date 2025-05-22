@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>StratusJet</title>
 
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -35,11 +35,10 @@
       text-align: center;
     }
 
-    .brand {
-      font-family: 'Great Vibes', cursive;
-      font-size: 2.5rem;
-      color: #0052D4;
-      margin-bottom: 1rem;
+    .logo {
+      width: 180px;
+      margin: 0 auto 1.5rem;
+      display: block;
     }
 
     input {
@@ -67,24 +66,16 @@
     button:hover {
       background: #003ea8;
     }
-
-    .footer {
-      margin-top: 1rem;
-      font-size: 0.85rem;
-      color: #666;
-    }
   </style>
 </head>
 <body>
   <div class="card">
-    <div class="brand">StratusJet</div>
+    <img src="stratusjet.png" alt="StratusJet Logo" class="logo" />
 
     <input type="email" id="email" placeholder="Email" />
     <input type="password" id="password" placeholder="Password" />
     <button onclick="signUp()">Sign Up</button>
     <button onclick="signIn()">Sign In</button>
-
-    <div class="footer">A Virtual Airline for Flight Sim Enthusiasts</div>
   </div>
 
   <script>
