@@ -139,6 +139,12 @@
       border-bottom: 1px solid #eee;
       padding: 0.75rem 0;
       font-size: 0.95rem;
+      line-height: 1.4;
+    }
+
+    .flight-entry span {
+      color: #666;
+      font-size: 0.9em;
     }
   </style>
 </head>
@@ -203,33 +209,52 @@
     }
 
     const recentFlights = document.getElementById("recentFlights");
-db.collection("pireps")
-  .where("approved", "==", true)
-  .orderBy("timestamp", "desc")
-  .limit(5)
-  .onSnapshot(snapshot => {
-    if (snapshot.empty) {
-      console.warn("No approved PIREPs found.");
-      recentFlights.innerHTML = `<h3>Recent Flights</h3><p>No recent flights.</p>`;
-      return;
-    }
 
-    const entries = snapshot.docs.map(doc => {
-      const p = doc.data();
-      console.log("Approved PIREP:", p); // debug
-      return `
-        <div class="flight-entry">
-          ✈️ <strong>${p.pilot || 'Pilot'}</strong><br>
-          ${p.departure} → ${p.arrival}<br>
-          ${p.flightNumber}
-        </div>`;
-    }).join('');
+    db.collection("pireps")
+      .where("approved", "==", true)
+      .orderBy("timestamp", "desc")
+      .limit(5)
+      .onSnapshot(snapshot => {
+        if (snapshot.empty) {
+          recentFlights.innerHTML = `<h3>Recent Flights</h3><p>No recent flights.</p>`;
+          return;
+        }
 
-    recentFlights.innerHTML = `<h3>Recent Flights</h3>${entries}`;
-  }, (error) => {
-    console.error("Error fetching approved PIREPs:", error);
-    recentFlights.innerHTML = `<h3>Recent Flights</h3><p>Error loading flights.</p>`;
-  });
+        const parseTime = (t) => {
+          if (!t || !t.includes(":")) return null;
+          const [h, m] = t.split(":").map(Number);
+          return h * 60 + m;
+        };
+
+        const entries = snapshot.docs.map(doc => {
+          const p = doc.data();
+
+          const depMins = parseTime(p.depTime);
+          const arrMins = parseTime(p.arrTime);
+          let flightTime = "N/A";
+
+          if (depMins != null && arrMins != null) {
+            let diff = arrMins - depMins;
+            if (diff < 0) diff += 1440;
+            const hrs = Math.floor(diff / 60);
+            const mins = diff % 60;
+            flightTime = `${hrs}h ${mins}m`;
+          }
+
+          return `
+            <div class="flight-entry">
+              <strong>${p.pilot || 'Pilot'}</strong><br>
+              ${p.departure} → ${p.arrival}<br>
+              ${p.flightNumber} <span>(${p.aircraftType || 'Unknown'})</span><br>
+              <span>Flight Time: ${flightTime}</span>
+            </div>`;
+        }).join('');
+
+        recentFlights.innerHTML = `<h3>Recent Flights</h3>${entries}`;
+      }, (error) => {
+        console.error("Error fetching approved PIREPs:", error);
+        recentFlights.innerHTML = `<h3>Recent Flights</h3><p>Error loading flights.</p>`;
+      });
   </script>
 </body>
 </html>
