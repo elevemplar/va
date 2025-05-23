@@ -4,10 +4,20 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Dashboard</title>
+
+  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <!-- Leaflet CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+
+  <!-- Roboto Font -->
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+
   <style>
     body {
       margin: 0;
@@ -15,7 +25,6 @@
       background-color: #f4f6fc;
       display: flex;
     }
-
     .sidebar-nav {
       width: 220px;
       background: white;
@@ -26,33 +35,27 @@
       flex-direction: column;
       gap: 1rem;
     }
-
     .sidebar-nav h2 {
       font-size: 1.2rem;
       color: #00a8f3;
       margin-bottom: 1rem;
     }
-
     .sidebar-nav a {
       font-size: 1rem;
       color: #333;
       text-decoration: none;
       padding: 0.5rem 0;
       border-radius: 4px;
-      cursor: pointer;
     }
-
     .sidebar-nav a:hover {
       background: #f0f8ff;
     }
-
     .page-content {
       flex: 1;
       display: flex;
       flex-direction: column;
       height: 100vh;
     }
-
     header {
       display: flex;
       justify-content: space-between;
@@ -61,28 +64,23 @@
       background-color: #00a8f3;
       color: white;
     }
-
     .left-header {
       font-size: 1.4rem;
       font-weight: 700;
     }
-
     .right-header {
       display: flex;
       align-items: center;
       gap: 0.75rem;
     }
-
     .logo-container {
       background: white;
       padding: 4px 8px;
       border-radius: 8px;
     }
-
     .logo {
       height: 40px;
     }
-
     .button {
       background: white;
       color: #00a8f3;
@@ -92,56 +90,37 @@
       border-radius: 6px;
       cursor: pointer;
     }
-
     .button:hover {
       background: #e4e4e4;
     }
-
     .main {
       display: flex;
-      padding: 2rem;
-      gap: 2rem;
       flex: 1;
-      overflow: auto;
+      overflow: hidden;
     }
-
-    .map {
+    #map {
       flex: 3;
-      background: white;
-      height: 100%;
-      min-height: 500px;
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      color: #999;
-      font-size: 1.2rem;
+      min-height: 100%;
     }
-
     .sidebar {
       flex: 1;
       background: white;
       height: 100%;
-      min-height: 500px;
-      border-radius: 10px;
+      border-radius: 0 0 0 10px;
       padding: 1rem;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      box-shadow: -2px 0 10px rgba(0,0,0,0.1);
       overflow-y: auto;
     }
-
     .sidebar h3 {
       margin-top: 0;
       color: #00a8f3;
     }
-
     .flight-entry {
       border-bottom: 1px solid #eee;
       padding: 0.75rem 0;
       font-size: 0.95rem;
       line-height: 1.4;
     }
-
     .flight-entry span {
       color: #666;
       font-size: 0.9em;
@@ -152,7 +131,7 @@
   <nav class="sidebar-nav">
     <h2>Flight Operations</h2>
     <a href="#">Flights</a>
-    <a href="pirep.html">File Manual PIREP</a>
+    <a href="pirep.html">File PIREP</a>
     <a href="fleet.html">Fleet</a>
     <div style="margin-top: auto; font-size: 0.75rem; color: #bbb; padding-top: 2rem;">
       <a href="admin-pireps.html" style="color: #ccc; text-decoration: none;">admin</a>
@@ -172,7 +151,7 @@
     </header>
 
     <div class="main">
-      <div class="map">Live Flight Map Coming Soon</div>
+      <div id="map"></div>
       <div class="sidebar" id="recentFlights">
         <h3>Recent Flights</h3>
         <p>Loading...</p>
@@ -187,46 +166,83 @@
       projectId: "stratusjet-a90ce",
       storageBucket: "stratusjet-a90ce.appspot.com",
       messagingSenderId: "912085812191",
-      appId: "1:912085812191:web:ac86feb9d6dd941fad3a6a"
+      appId: "1:912085812191:web:ac86feb9d6dd941fad3a6a",
+      databaseURL: "https://stratusjet-a90ce-default-rtdb.firebaseio.com/"
     };
-
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
+    const rtdb = firebase.database();
 
     auth.onAuthStateChanged(user => {
-      if (!user) {
-        window.location.href = "index.html";
-      } else {
-        document.getElementById("welcome-text").textContent = `Welcome, ${user.displayName || 'Pilot'}`;
-      }
+      if (!user) window.location.href = "index.html";
+      document.getElementById("welcome-text").textContent = `Welcome, ${user.displayName}`;
     });
 
     function logout() {
-      auth.signOut().then(() => {
-        window.location.href = "index.html";
-      });
+      auth.signOut().then(() => window.location.href = "index.html");
     }
 
-    const recentFlights = document.getElementById("recentFlights");
+    // Init map
+    const map = L.map('map').setView([39.5, -98.35], 4); // Centered over US
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
 
-    const parseTime = (t) => {
+    const planeIcon = L.icon({
+      iconUrl: 'https://cdn-icons-png.flaticon.com/512/149/149205.png',
+      iconSize: [28, 28],
+      iconAnchor: [14, 14],
+      popupAnchor: [0, -12]
+    });
+
+    const markers = {};
+
+    // Realtime aircraft
+    rtdb.ref('Flights').on('value', snapshot => {
+      const flights = snapshot.val() || {};
+
+      Object.keys(markers).forEach(user => {
+        if (!flights[user] || !flights[user].Live) {
+          map.removeLayer(markers[user]);
+          delete markers[user];
+        }
+      });
+
+      Object.entries(flights).forEach(([user, data]) => {
+        const live = data.Live;
+        if (!live || !live.Latitude || !live.Longitude) return;
+
+        const lat = parseFloat(live.Latitude);
+        const lng = parseFloat(live.Longitude);
+        const alt = live.Altitude || 0;
+
+        const popup = `<strong>${user}</strong><br>Altitude: ${alt} ft`;
+
+        if (!markers[user]) {
+          markers[user] = L.marker([lat, lng], { icon: planeIcon })
+            .addTo(map)
+            .bindPopup(popup);
+        } else {
+          markers[user].setLatLng([lat, lng]);
+          markers[user].setPopupContent(popup);
+        }
+      });
+    });
+
+    // Recent flights
+    const recentFlights = document.getElementById("recentFlights");
+    const parseTime = t => {
       if (!t || typeof t !== "string") return null;
       t = t.trim();
-
-      // If it's 4 digits like "0430"
       if (/^\d{4}$/.test(t)) {
-        const h = parseInt(t.slice(0, 2), 10);
-        const m = parseInt(t.slice(2), 10);
+        const h = +t.slice(0, 2), m = +t.slice(2);
         return h * 60 + m;
       }
-
-      // If it's HH:MM
       if (t.includes(":")) {
         const [h, m] = t.split(":").map(Number);
         return h * 60 + m;
       }
-
       return null;
     };
 
@@ -240,46 +256,31 @@
           return;
         }
 
-const entries = snapshot.docs.map(doc => {
-  const p = doc.data();
+        const html = snapshot.docs.map(doc => {
+          const p = doc.data();
+          const ts = p.timestamp?.toDate();
+          const date = ts ? `${ts.getMonth() + 1}/${ts.getDate()}/${ts.getFullYear()}` : 'N/A';
+          const d = parseTime(p.depTime), a = parseTime(p.arrTime);
+          let ft = "N/A";
+          if (d != null && a != null) {
+            let diff = a - d;
+            if (diff < 0) diff += 1440;
+            ft = `${Math.floor(diff / 60)}h ${diff % 60}m`;
+          }
 
-  const depMins = parseTime(p.depTime);
-  const arrMins = parseTime(p.arrTime);
-  let flightTime = "N/A";
+          return `
+            <div class="flight-entry" style="display:flex;justify-content:space-between;">
+              <div>
+                <strong>${p.pilot || 'Pilot'}</strong><br>
+                ${p.departure} → ${p.arrival}<br>
+                ${p.flightNumber} <span>(${p.aircraftType})</span><br>
+                <span>Flight Time: ${ft}</span>
+              </div>
+              <div style="text-align:right;color:#999;font-size:0.85em">${date}</div>
+            </div>`;
+        }).join('');
 
-  if (depMins != null && arrMins != null) {
-    let diff = arrMins - depMins;
-    if (diff < 0) diff += 1440;
-    const hrs = Math.floor(diff / 60);
-    const mins = diff % 60;
-    flightTime = `${hrs}h ${mins}m`;
-  }
-
-  // Format timestamp to M/D/YYYY
-  let submitted = "Unknown";
-  if (p.timestamp && p.timestamp.toDate) {
-    const d = p.timestamp.toDate();
-    submitted = `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
-  }
-
-  return `
-    <div class="flight-entry" style="display: flex; justify-content: space-between;">
-      <div>
-        <strong>${p.pilot || 'Pilot'}</strong><br>
-        ${p.departure} → ${p.arrival}<br>
-        ${p.flightNumber} <span>(${p.aircraftType || 'Unknown'})</span><br>
-        <span>Flight Time: ${flightTime}</span>
-      </div>
-      <div style="text-align: right; color: #888; font-size: 0.85rem; white-space: nowrap;">
-        ${submitted}
-      </div>
-    </div>`;
-}).join('');
-
-        recentFlights.innerHTML = `<h3>Recent Flights</h3>${entries}`;
-      }, (error) => {
-        console.error("Error fetching approved PIREPs:", error);
-        recentFlights.innerHTML = `<h3>Recent Flights</h3><p>Error loading flights.</p>`;
+        recentFlights.innerHTML = `<h3>Recent Flights</h3>${html}`;
       });
   </script>
 </body>
