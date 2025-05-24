@@ -130,12 +130,9 @@
 <body>
   <nav class="sidebar-nav">
     <h2>Flight Operations</h2>
-    <a href="#">Flights</a>
-    <a href="pirep.html">File PIREP</a>
+    <a href="flights.html">Flights</a>
     <a href="fleet.html">Fleet</a>
-    <div style="margin-top: auto; font-size: 0.75rem; color: #bbb; padding-top: 2rem;">
-      <a href="admin-pireps.html" style="color: #ccc; text-decoration: none;">admin</a>
-    </div>
+    <a href="admin-flights.html">Admin Flights</a>
   </nav>
 
   <div class="page-content">
@@ -172,7 +169,6 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
-    const rtdb = firebase.database();
 
     auth.onAuthStateChanged(user => {
       if (!user) window.location.href = "index.html";
@@ -183,105 +179,21 @@
       auth.signOut().then(() => window.location.href = "index.html");
     }
 
-    // Init map
-    const map = L.map('map').setView([39.5, -98.35], 4); // Centered over US
+    const map = L.map('map').setView([39.5, -98.35], 4);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
-    const planeIcon = L.icon({
-      iconUrl: 'https://cdn-icons-png.flaticon.com/512/149/149205.png',
-      iconSize: [28, 28],
-      iconAnchor: [14, 14],
-      popupAnchor: [0, -12]
-    });
-
-    const markers = {};
-
-    // Realtime aircraft
-    rtdb.ref('Flights').on('value', snapshot => {
-      const flights = snapshot.val() || {};
-
-      Object.keys(markers).forEach(user => {
-        if (!flights[user] || !flights[user].Live) {
-          map.removeLayer(markers[user]);
-          delete markers[user];
-        }
-      });
-
-      Object.entries(flights).forEach(([user, data]) => {
-        const live = data.Live;
-        if (!live || !live.Latitude || !live.Longitude) return;
-
-        const lat = parseFloat(live.Latitude);
-        const lng = parseFloat(live.Longitude);
-        const alt = live.Altitude || 0;
-
-        const popup = `<strong>${user}</strong><br>Altitude: ${alt} ft`;
-
-        if (!markers[user]) {
-          markers[user] = L.marker([lat, lng], { icon: planeIcon })
+    db.collection("fleetLocations").get().then(snapshot => {
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        if (data.lat && data.lng) {
+          L.marker([data.lat, data.lng])
             .addTo(map)
-            .bindPopup(popup);
-        } else {
-          markers[user].setLatLng([lat, lng]);
-          markers[user].setPopupContent(popup);
+            .bindPopup(`<strong>${doc.id}</strong><br>${data.type}<br>${data.icao}`);
         }
       });
     });
-
-    // Recent flights
-    const recentFlights = document.getElementById("recentFlights");
-    const parseTime = t => {
-      if (!t || typeof t !== "string") return null;
-      t = t.trim();
-      if (/^\d{4}$/.test(t)) {
-        const h = +t.slice(0, 2), m = +t.slice(2);
-        return h * 60 + m;
-      }
-      if (t.includes(":")) {
-        const [h, m] = t.split(":").map(Number);
-        return h * 60 + m;
-      }
-      return null;
-    };
-
-    db.collection("pireps")
-      .where("approved", "==", true)
-      .orderBy("timestamp", "desc")
-      .limit(5)
-      .onSnapshot(snapshot => {
-        if (snapshot.empty) {
-          recentFlights.innerHTML = `<h3>Recent Flights</h3><p>No recent flights.</p>`;
-          return;
-        }
-
-        const html = snapshot.docs.map(doc => {
-          const p = doc.data();
-          const ts = p.timestamp?.toDate();
-          const date = ts ? `${ts.getMonth() + 1}/${ts.getDate()}/${ts.getFullYear()}` : 'N/A';
-          const d = parseTime(p.depTime), a = parseTime(p.arrTime);
-          let ft = "N/A";
-          if (d != null && a != null) {
-            let diff = a - d;
-            if (diff < 0) diff += 1440;
-            ft = `${Math.floor(diff / 60)}h ${diff % 60}m`;
-          }
-
-          return `
-            <div class="flight-entry" style="display:flex;justify-content:space-between;">
-              <div>
-                <strong>${p.pilot || 'Pilot'}</strong><br>
-                ${p.departure} → ${p.arrival}<br>
-                ${p.flightNumber} <span>(${p.aircraftType})</span><br>
-                <span>Flight Time: ${ft}</span>
-              </div>
-              <div style="text-align:right;color:#999;font-size:0.85em">${date}</div>
-            </div>`;
-        }).join('');
-
-        recentFlights.innerHTML = `<h3>Recent Flights</h3>${html}`;
-      });
   </script>
 </body>
 </html>
