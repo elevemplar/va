@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Complete Flight | StratusJet</title>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: #f4f6fc;
+      padding: 2rem;
+    }
+    .container {
+      max-width: 600px;
+      background: white;
+      margin: auto;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+    }
+    h1 {
+      text-align: center;
+      color: #00a8f3;
+    }
+    label {
+      display: block;
+      margin-top: 1rem;
+      font-weight: bold;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 0.6rem;
+      margin-top: 0.3rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+    textarea {
+      resize: vertical;
+    }
+    button {
+      margin-top: 1.5rem;
+      width: 100%;
+      padding: 0.8rem;
+      background: #00a8f3;
+      border: none;
+      color: white;
+      font-size: 1rem;
+      font-weight: bold;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .success {
+      color: green;
+      text-align: center;
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Complete Your Flight</h1>
+    <form id="completeForm">
+      <label for="depTime">Departure Time (UTC)</label>
+      <input type="text" id="depTime" required placeholder="HH:MM">
+
+      <label for="enrouteTime">Enroute Time (minutes)</label>
+      <input type="number" id="enrouteTime" required>
+
+      <label for="arrTime">Arrival Time (UTC)</label>
+      <input type="text" id="arrTime" required placeholder="HH:MM">
+
+      <label for="remarks">Remarks (Optional)</label>
+      <textarea id="remarks" rows="3"></textarea>
+
+      <button type="submit">Submit Flight</button>
+      <div class="success" id="successMsg"></div>
+    </form>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCljsn7eAJYe8BEHQbF8cXLRxVkqypmxPU",
+      authDomain: "stratusjet-a90ce.firebaseapp.com",
+      projectId: "stratusjet-a90ce",
+      storageBucket: "stratusjet-a90ce.appspot.com",
+      messagingSenderId: "912085812191",
+      appId: "1:912085812191:web:ac86feb9d6dd941fad3a6a"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+
+    // Replace with actual flight ID via query params or state management
+    const flightId = new URLSearchParams(window.location.search).get('id');
+
+    document.getElementById('completeForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const depTime = document.getElementById('depTime').value.trim();
+      const enrouteTime = parseInt(document.getElementById('enrouteTime').value);
+      const arrTime = document.getElementById('arrTime').value.trim();
+      const remarks = document.getElementById('remarks').value.trim();
+
+      try {
+        const flightRef = db.collection('flights').doc(flightId);
+        const flightDoc = await flightRef.get();
+        const { reg, aircraft, to } = flightDoc.data();
+
+        // 1. Update flight
+        await flightRef.update({
+          depTime, enrouteTime, arrTime, remarks,
+          status: 'completed'
+        });
+
+        // 2. Update aircraft location
+        await db.collection('fleet').doc(reg).set({
+          type: aircraft,
+          location: to
+        });
+
+        // 3. Generate new flight
+        const icaoList = ['KLAS', 'KDEN', 'KSFO', 'KSEA', 'KPHX', 'KORD', 'KMEM', 'KATL', 'KBOS', 'KMIA'];
+        const newDest = icaoList.filter(code => code !== to)[Math.floor(Math.random() * (icaoList.length - 1))];
+        const distance = Math.floor(Math.random() * 1000) + 200;
+
+        await db.collection('flights').add({
+          reg,
+          aircraft,
+          from: to,
+          to: newDest,
+          distance,
+          bookedBy: null,
+          status: 'available'
+        });
+
+        document.getElementById('successMsg').textContent = '✅ Flight completed and new leg generated!';
+        e.target.reset();
+      } catch (err) {
+        document.getElementById('successMsg').textContent = '❌ ' + err.message;
+      }
+    });
+  </script>
+</body>
+</html>
