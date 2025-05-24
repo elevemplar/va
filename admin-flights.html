@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add New Flight | StratusJet Admin</title>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: #f4f6fc;
+      padding: 2rem;
+    }
+    .container {
+      max-width: 500px;
+      margin: auto;
+      background: white;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #00a8f3;
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+    label {
+      display: block;
+      margin-top: 1rem;
+      font-weight: 600;
+    }
+    input, select {
+      width: 100%;
+      padding: 0.5rem;
+      margin-top: 0.3rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    button {
+      margin-top: 1.5rem;
+      background: #00a8f3;
+      color: white;
+      border: none;
+      padding: 0.8rem 1rem;
+      font-weight: bold;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .message {
+      margin-top: 1rem;
+      text-align: center;
+      color: green;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Add New Flight</h1>
+    <form id="flightForm">
+      <label for="reg">Aircraft Registration</label>
+      <input type="text" id="reg" required>
+
+      <label for="aircraft">Aircraft Type</label>
+      <select id="aircraft" required>
+        <option value="">-- Select Type --</option>
+        <option value="Learjet 35A">Learjet 35A</option>
+        <option value="Cessna Citation CJ4">Cessna Citation CJ4</option>
+        <option value="Cessna Citation Longitude">Cessna Citation Longitude</option>
+      </select>
+
+      <label for="from">From (ICAO)</label>
+      <input type="text" id="from" required>
+
+      <label for="to">To (ICAO)</label>
+      <input type="text" id="to" required>
+
+      <label for="distance">Distance (NM)</label>
+      <input type="number" id="distance" required>
+
+      <button type="submit">Add Flight</button>
+      <div class="message" id="msg"></div>
+    </form>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCljsn7eAJYe8BEHQbF8cXLRxVkqypmxPU",
+      authDomain: "stratusjet-a90ce.firebaseapp.com",
+      projectId: "stratusjet-a90ce",
+      storageBucket: "stratusjet-a90ce.appspot.com",
+      messagingSenderId: "912085812191",
+      appId: "1:912085812191:web:ac86feb9d6dd941fad3a6a"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const form = document.getElementById('flightForm');
+    const msg = document.getElementById('msg');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const reg = document.getElementById('reg').value.trim().toUpperCase();
+      const aircraft = document.getElementById('aircraft').value;
+      const from = document.getElementById('from').value.trim().toUpperCase();
+      const to = document.getElementById('to').value.trim().toUpperCase();
+      const distance = parseInt(document.getElementById('distance').value);
+
+      try {
+        await db.collection("flights").add({
+          reg, aircraft, from, to, distance,
+          bookedBy: null
+        });
+        msg.textContent = "Flight added successfully!";
+        form.reset();
+      } catch (error) {
+        msg.textContent = "Error: " + error.message;
+      }
+    });
+  </script>
+</body>
+</html>
