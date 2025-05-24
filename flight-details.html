@@ -95,8 +95,23 @@
     const db = firebase.firestore();
     const auth = firebase.auth();
 
-    // Replace with actual flight ID via query params or state management
+    // Get flight ID and check ownership
     const flightId = new URLSearchParams(window.location.search).get('id');
+let currentUser;
+
+firebase.auth().onAuthStateChanged(async user => {
+  if (!user) return window.location.href = 'index.html';
+  currentUser = user;
+
+  const flightRef = db.collection('flights').doc(flightId);
+  const flightSnap = await flightRef.get();
+  const flight = flightSnap.data();
+
+  if (!flight || flight.bookedBy !== user.uid) {
+    alert("You are not authorized to complete this flight.");
+    window.location.href = 'dashboard.html';
+  }
+});
 
     document.getElementById('completeForm').addEventListener('submit', async (e) => {
       e.preventDefault();
